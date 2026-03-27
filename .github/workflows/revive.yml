@@ -2,9 +2,8 @@ name: Kaggle Zombie Bot Revival
 
 on:
   schedule:
-    # سيقوم بالتشغيل التلقائي كل 10 ساعات لضمان بقاء البوت حياً
     - cron: '0 */10 * * *'
-  workflow_dispatch: # هذا الزر يسمح لك بتشغيله يدوياً في أي وقت للتجربة
+  workflow_dispatch:
 
 jobs:
   revive-bot:
@@ -18,23 +17,30 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: تثبيت مكتبة كاجل الرسمية
+      - name: تثبيت مكتبة كاجل
         run: pip install kaggle
 
-      - name: حقن بيانات الاعتماد (API Token)
+      - name: إعداد بيانات الدخول
         run: |
           mkdir -p ~/.kaggle
-          # استخدام التوكن الجديد الخاص بك mohammadloay
           echo '{"username":"mohammadloay","key":"454b86bad813de576fa9533baaad2cad"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
 
-      - name: سحب وإعادة تشغيل البوت (إجباري)
+      - name: سحب وإعادة تشغيل البوت (GPU المعطل)
         run: |
-          # 1. سحب الكود الحالي من كاجل للتأكد من الاتصال
-          kaggle kernels pull mohammadloay/notebook954402994b -p bot_code
+          # 1. سحب البوت مع ملف الإعدادات
+          kaggle kernels pull mohammadloay/notebook954402994b -p bot_code -m
           
-          # 2. حركة ذكية: تعديل بسيط في الميتا داتا لإجبار كاجل على تصفير عداد الـ 12 ساعة
-          sed -i 's/"id": "/"id": "r-/' bot_code/kernel-metadata.json
+          # 2. إنشاء ملف الإعدادات إذا لم يوجد أو تعديله لتعطيل GPU
+          if [ ! -f "bot_code/kernel-metadata.json" ]; then
+            echo '{"id":"mohammadloay/notebook954402994b","title":"notebook954402994b","code_file":"notebook954402994b.ipynb","language":"python","kernel_type":"notebook","is_private":false,"enable_gpu":false,"enable_tpu":false,"enable_internet":true,"dataset_sources":[],"kernel_sources":[],"competition_sources":[]}' > bot_code/kernel-metadata.json
+          else
+            # تعطيل الـ GPU إجبارياً وتفعيل الإنترنت
+            sed -i 's/"enable_gpu": true/"enable_gpu": false/g' bot_code/kernel-metadata.json
+            sed -i 's/"enable_internet": false/"enable_internet": true/g' bot_code/kernel-metadata.json
+            # تغيير بسيط في العنوان لتصفير العداد في كاجل
+            sed -i 's/"title": "/"title": "r-/' bot_code/kernel-metadata.json
+          fi
           
-          # 3. إعادة الرفع (Push) لإعادة إطلاق البوت فوراً
+          # 3. إعادة الرفع والتشغيل فوراً
           kaggle kernels push -p bot_code
