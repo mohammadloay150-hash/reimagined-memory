@@ -26,21 +26,27 @@ jobs:
           echo '{"username":"mohammadloay","key":"454b86bad813de576fa9533baaad2cad"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
 
-      - name: سحب وإعادة تشغيل البوت (GPU المعطل)
+      - name: سحب وإعادة تشغيل البوت (بدون GPU)
         run: |
-          # 1. سحب البوت مع ملف الإعدادات
-          kaggle kernels pull mohammadloay/notebook954402994b -p bot_code -m
+          # 1. إنشاء المجلد وسحب ملف النوت بوك فقط
+          mkdir -p bot_code
+          kaggle kernels pull mohammadloay/notebook954402994b -p bot_code
           
-          # 2. إنشاء ملف الإعدادات إذا لم يوجد أو تعديله لتعطيل GPU
-          if [ ! -f "bot_code/kernel-metadata.json" ]; then
-            echo '{"id":"mohammadloay/notebook954402994b","title":"notebook954402994b","code_file":"notebook954402994b.ipynb","language":"python","kernel_type":"notebook","is_private":false,"enable_gpu":false,"enable_tpu":false,"enable_internet":true,"dataset_sources":[],"kernel_sources":[],"competition_sources":[]}' > bot_code/kernel-metadata.json
-          else
-            # تعطيل الـ GPU إجبارياً وتفعيل الإنترنت
-            sed -i 's/"enable_gpu": true/"enable_gpu": false/g' bot_code/kernel-metadata.json
-            sed -i 's/"enable_internet": false/"enable_internet": true/g' bot_code/kernel-metadata.json
-            # تغيير بسيط في العنوان لتصفير العداد في كاجل
-            sed -i 's/"title": "/"title": "r-/' bot_code/kernel-metadata.json
-          fi
+          # 2. إنشاء ملف الإعدادات يدوياً لضمان تعطيل GPU وتفعيل الإنترنت
+          echo '{
+            "id": "mohammadloay/notebook954402994b",
+            "title": "notebook954402994b-revived",
+            "code_file": "notebook954402994b.ipynb",
+            "language": "python",
+            "kernel_type": "notebook",
+            "is_private": false,
+            "enable_gpu": false,
+            "enable_tpu": false,
+            "enable_internet": true,
+            "dataset_sources": [],
+            "kernel_sources": [],
+            "competition_sources": []
+          }' > bot_code/kernel-metadata.json
           
-          # 3. إعادة الرفع والتشغيل فوراً
+          # 3. إعادة الرفع لتشغيل الجلسة فوراً بالمواصفات الجديدة
           kaggle kernels push -p bot_code
