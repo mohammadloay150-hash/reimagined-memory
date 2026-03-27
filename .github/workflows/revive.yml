@@ -2,36 +2,39 @@ name: Kaggle Zombie Bot Revival
 
 on:
   schedule:
-    # سيقوم GitHub بتشغيل هذا الكود تلقائياً كل 11 ساعة
-    - cron: '0 */11 * * *'
-  workflow_dispatch: # زر لتشغيل السكريبت يدوياً متى أردت
+    # سيقوم بالتشغيل التلقائي كل 10 ساعات لضمان بقاء البوت حياً
+    - cron: '0 */10 * * *'
+  workflow_dispatch: # هذا الزر يسمح لك بتشغيله يدوياً في أي وقت للتجربة
 
 jobs:
   revive-bot:
     runs-on: ubuntu-latest
     steps:
       - name: إعداد بيئة العمل
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: تجهيز بايثون
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: تثبيت مكتبة كاجل
+      - name: تثبيت مكتبة كاجل الرسمية
         run: pip install kaggle
 
-      - name: إعداد بيانات الدخول (Direct)
+      - name: حقن بيانات الاعتماد (API Token)
         run: |
           mkdir -p ~/.kaggle
-          # وضع البيانات مباشرة في ملف الإعدادات
-          echo '{"username":"mohammadloay","key":"fad2461497d9d85b4c707050bdc43ad0"}' > ~/.kaggle/kaggle.json
+          # استخدام التوكن الجديد الخاص بك mohammadloay
+          echo '{"username":"mohammadloay","key":"454b86bad813de576fa9533baaad2cad"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
 
-      - name: سحب وإعادة تشغيل البوت
+      - name: سحب وإعادة تشغيل البوت (إجباري)
         run: |
-          # سحب ملفات النوت بوك من الرابط الخاص بك
+          # 1. سحب الكود الحالي من كاجل للتأكد من الاتصال
           kaggle kernels pull mohammadloay/notebook954402994b -p bot_code
           
-          # إعادة الرفع لتصفير وقت التشغيل (Restart)
+          # 2. حركة ذكية: تعديل بسيط في الميتا داتا لإجبار كاجل على تصفير عداد الـ 12 ساعة
+          sed -i 's/"id": "/"id": "r-/' bot_code/kernel-metadata.json
+          
+          # 3. إعادة الرفع (Push) لإعادة إطلاق البوت فوراً
           kaggle kernels push -p bot_code
