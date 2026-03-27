@@ -23,19 +23,20 @@ jobs:
       - name: إعداد بيانات الدخول
         run: |
           mkdir -p ~/.kaggle
-          echo '{"username":"mohammadloay","key":"454b86bad813de576fa9533baaad2cad"}' > ~/.kaggle/kaggle.json
+          # ملاحظة: تم وضع التوكن كاملاً مع KG_ لضمان الصلاحية
+          echo '{"username":"mohammadloay","key":"KGAT_454b86bad813de576fa9533baaad2cad"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
 
       - name: سحب وإعادة تشغيل البوت (بدون GPU)
         run: |
-          # 1. إنشاء المجلد وسحب ملف النوت بوك فقط
+          # 1. إنشاء المجلد وسحب ملف النوت بوك
           mkdir -p bot_code
           kaggle kernels pull mohammadloay/notebook954402994b -p bot_code
           
-          # 2. إنشاء ملف الإعدادات يدوياً لضمان تعطيل GPU وتفعيل الإنترنت
+          # 2. إنشاء ملف الإعدادات يدوياً (مطابق تماماً لمتطلبات كاجل)
           echo '{
             "id": "mohammadloay/notebook954402994b",
-            "title": "notebook954402994b-revived",
+            "title": "notebook954402994b",
             "code_file": "notebook954402994b.ipynb",
             "language": "python",
             "kernel_type": "notebook",
@@ -48,5 +49,8 @@ jobs:
             "competition_sources": []
           }' > bot_code/kernel-metadata.json
           
-          # 3. إعادة الرفع لتشغيل الجلسة فوراً بالمواصفات الجديدة
+          # 3. إضافة تغيير بسيط جداً داخل ملف النوت بوك لإجبار كاجل على تحديث الجلسة
+          echo "" >> bot_code/notebook954402994b.ipynb
+          
+          # 4. إعادة الرفع لتشغيل الجلسة فوراً
           kaggle kernels push -p bot_code
